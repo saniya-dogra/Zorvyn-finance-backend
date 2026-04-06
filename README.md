@@ -1,201 +1,65 @@
-# Finance Dashboard Backend
+# Finance Data Processing and Access Control Backend
 
-A backend system for a finance dashboard built with Node.js, Express, and MongoDB.  
-This project was built as part of the Zorvyn backend screening assignment.
+## 🚀 Overview
 
----
+This project is a backend system for a finance dashboard that supports role-based access control and financial data analytics.
 
-## What This Does
+## 🛠 Tech Stack
 
-This API lets different types of users interact with financial records based on their role.  
-Think of it like a simple accounting system where:
-- **Admins** have full control
-- **Analysts** can view and add/edit records
-- **Viewers** can only read data
+* Node.js
+* Express.js
+* MongoDB
+* JWT Authentication
 
----
+## ✨ Features
 
-## Tech Stack
+* User authentication (JWT)
+* Role-based access control (Viewer, Analyst, Admin)
+* Financial records CRUD
+* Dashboard analytics (summary, category-wise, trends)
 
-- **Node.js** with **Express** — for the server and routing
-- **MongoDB** with **Mongoose** — for the database
-- **JWT** — for authentication (token based)
-- **bcryptjs** — to hash passwords before storing
+## 🔐 Roles & Permissions
 
----
+| Role    | Permissions      |
+| ------- | ---------------- |
+| Viewer  | Read-only access |
+| Analyst | Read + analytics |
+| Admin   | Full access      |
 
-## Project Structure
-
-```
-finance-dashboard/
-│
-├── config/
-│   └── db.js              # MongoDB connection
-│
-├── middleware/
-│   └── authMiddleware.js  # JWT check + role check
-│
-├── models/
-│   ├── User.js            # User schema (name, email, password, role)
-│   └── Record.js          # Financial record schema
-│
-├── routes/
-│   ├── authRoutes.js      # Register + Login
-│   ├── userRoutes.js      # User management (admin only)
-│   ├── recordRoutes.js    # CRUD for financial records
-│   └── dashboardRoutes.js # Summary and analytics endpoints
-│
-├── server.js              # Main entry point
-├── .env.example           # Example environment variables
-└── package.json
-```
-
----
-
-## Setup Instructions
-
-### 1. Clone the repo and install dependencies
-
-```bash
-npm install
-```
-
-### 2. Create a `.env` file
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/finance_dashboard
-JWT_SECRET=anysecretkeyhere
-```
-
-Make sure MongoDB is running on your machine (or use MongoDB Atlas and paste the connection string).
-
-### 3. Start the server
-
-```bash
-# normal start
-npm start
-
-# or with auto-reload during development
-npm run dev
-```
-
-Server will run on `http://localhost:5000`
-
----
-
-## API Endpoints
+## 📡 API Endpoints
 
 ### Auth
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/auth/register` | Register a new user | Public |
-| POST | `/api/auth/login` | Login and get token | Public |
+* POST /api/auth/login
 
 ### Users
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/users` | Get all users | Admin |
-| GET | `/api/users/me` | Get your own profile | All |
-| PUT | `/api/users/:id/role` | Change user role | Admin |
-| PUT | `/api/users/:id/status` | Activate/deactivate user | Admin |
+* POST /api/users
+* GET /api/users
 
-### Financial Records
+### Records
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/records` | Get all records (supports filters) | All |
-| GET | `/api/records/:id` | Get one record | All |
-| POST | `/api/records` | Create new record | Admin, Analyst |
-| PUT | `/api/records/:id` | Update a record | Admin, Analyst |
-| DELETE | `/api/records/:id` | Delete a record | Admin only |
-
-**Filter options for GET /api/records:**
-- `?type=income` or `?type=expense`
-- `?category=salary`
-- `?startDate=2024-01-01&endDate=2024-12-31`
+* POST /api/records
+* GET /api/records
+* PUT /api/records/:id
+* DELETE /api/records/:id
 
 ### Dashboard
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/dashboard/summary` | Total income, expenses, balance | All |
-| GET | `/api/dashboard/by-category` | Breakdown by category | Admin, Analyst |
-| GET | `/api/dashboard/monthly-trends` | Month-by-month trends | Admin, Analyst |
-| GET | `/api/dashboard/recent` | Last 5 transactions | All |
+* GET /api/dashboard/summary
+* GET /api/dashboard/by-category
+* GET /api/dashboard/monthly-trends
+* GET /api/dashboard/recent
 
----
+## ⚙️ Setup Instructions
 
-## How Authentication Works
-
-1. Register or login to get a JWT token
-2. Add the token to all protected requests as a header:
-   ```
-   Authorization: Bearer <your_token_here>
-   ```
-
----
-
-## Role Permissions Summary
-
-| Action | Viewer | Analyst | Admin |
-|--------|--------|---------|-------|
-| View records | ✅ | ✅ | ✅ |
-| Create records | ❌ | ✅ | ✅ |
-| Update records | ❌ | ✅ | ✅ |
-| Delete records | ❌ | ❌ | ✅ |
-| View summary | ✅ | ✅ | ✅ |
-| View category/trends | ❌ | ✅ | ✅ |
-| Manage users | ❌ | ❌ | ✅ |
-
----
-
-## Sample Request Bodies
-
-**Register:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "role": "analyst"
-}
+```bash
+npm install
+npm run dev
 ```
 
-**Create Record:**
-```json
-{
-  "amount": 5000,
-  "type": "income",
-  "category": "Salary",
-  "date": "2024-06-01",
-  "notes": "Monthly salary"
-}
-```
+## 📌 Assumptions
 
----
-
-## Assumptions Made
-
-- All users register with the "viewer" role by default. Only an admin can promote a user to analyst or admin via the PUT /api/users/:id/role endpoint.
-- Soft delete was not implemented to keep things simple — records are permanently deleted.
-- No pagination added to keep the code clean, but it can be added easily with mongoose `.skip()` and `.limit()`.
-- Dates are stored as MongoDB Date objects. Send dates in ISO format like `2024-06-01`.
-
----
-
-## What Could Be Improved
-
-- Add pagination to the records listing
-- Add search by notes/description
-- Soft delete is implemented — records are marked isDeleted: true instead of being permanently removed
-- Add rate limiting to prevent abuse
-- Write unit tests with Jest
-
----
-
-*Built with Node.js + Express + MongoDB*
+* Roles: viewer, analyst, admin
+* JWT-based authentication
+* MongoDB used for persistence
