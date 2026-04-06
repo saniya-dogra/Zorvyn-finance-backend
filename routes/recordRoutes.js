@@ -4,12 +4,14 @@ const Record = require("../models/Record");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 
 // GET /api/records
-// viewers and above can view records
-// supports filtering by type, category, date range
+// supports filtering by type, category, date range + pagination
 router.get("/", protect, async (req, res) => {
   try {
-    const { type, category, startDate, endDate, page, limit } = req.query; const pageNum = parseInt(page) || 1; const limitNum = parseInt(limit) || 10; const skip = (pageNum - 1) * limitNum;
-    // build filter object based on what the user sends
+    const { type, category, startDate, endDate, page, limit } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
     let filter = { isDeleted: false };
 
     if (type) {
@@ -20,7 +22,7 @@ router.get("/", protect, async (req, res) => {
     }
 
     if (category) {
-      filter.category = { $regex: category, $options: "i" }; // case insensitive search
+      filter.category = { $regex: category, $options: "i" };
     }
 
     if (startDate || endDate) {
@@ -29,18 +31,34 @@ router.get("/", protect, async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    const total = await Record.countDocuments(filter); const records = await Record.find(filter) .populate("createdBy", "name email") .sort({ date: -1 }) .skip(skip) .limit(limitNum); res.json({ records, pagination: { total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum), }, });
+    const total = await Record.countDocuments(filter);
+    const records = await Record.find(filter)
+      .populate("createdBy", "name email")
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    res.json({
+      records,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching records", error: error.message });
   }
 });
 
 // GET /api/records/:id
-// anyone logged in can view a single record
 router.get("/:id", protect, async (req, res) => {
   try {
-    const record = await Record.findOne({ _id: req.params.id, isDeleted: false }).populate("createdBy", "name email");
-
+    const record = await Record.findOne({
+      _id: req.params.id,
+      isDeleted: false,
+    }).populate("createdBy", "name email");
 
     if (!record) {
       return res.status(404).json({ message: "Record not found" });
@@ -52,12 +70,10 @@ router.get("/:id", protect, async (req, res) => {
   }
 });
 
-// POST /api/records
-// only admin and analyst can create records
+// POST /api/records — admin and analyst only
 router.post("/", protect, authorizeRoles("admin", "analyst"), async (req, res) => {
   const { amount, type, category, date, notes } = req.body;
 
-  // basic validation
   if (!amount || !type || !category || !date) {
     return res.status(400).json({ message: "amount, type, category and date are all required" });
   }
@@ -86,12 +102,10 @@ router.post("/", protect, authorizeRoles("admin", "analyst"), async (req, res) =
   }
 });
 
-// PUT /api/records/:id
-// only admin and analyst can update
+// PUT /api/records/:id — admin and analyst only
 router.put("/:id", protect, authorizeRoles("admin", "analyst"), async (req, res) => {
   const { amount, type, category, date, notes } = req.body;
 
-  // validate if provided
   if (amount !== undefined && amount <= 0) {
     return res.status(400).json({ message: "Amount must be greater than 0" });
   }
@@ -117,10 +131,20 @@ router.put("/:id", protect, authorizeRoles("admin", "analyst"), async (req, res)
   }
 });
 
-// DELETE /api/records/:id
-// only admin can delete records
+// DELETE /api/records/:id — soft delete, admin only
 router.delete("/:id", protect, authorizeRoles("admin"), async (req, res) => {
-  try { const record = await Record.findOneAndUpdate( { _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true } ); if (!record) { return res.status(404).json({ message: "Record not found" }); } res.json({ message: "Record deleted successfully" });
+  try {
+    const record = await Record.findOneAndUpdate(
+      { _id: req.params.id, isDeleted: false },
+      { isDeleted: true },
+      { new: true }
+    );
+
+    if (!record) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+    res.json({ message: "Record deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting record", error: error.message });
   }
