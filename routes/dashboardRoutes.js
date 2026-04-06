@@ -7,7 +7,7 @@ const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 // viewers can see this - it's read only summary data
 router.get("/summary", protect, async (req, res) => {
   try {
-    const records = await Record.find();
+    const records = await Record.find({ isDeleted: false });
 
     let totalIncome = 0;
     let totalExpenses = 0;
@@ -81,7 +81,7 @@ router.get("/monthly-trends", protect, authorizeRoles("admin", "analyst"), async
 // last 5 transactions - good for dashboard widget
 router.get("/recent", protect, async (req, res) => {
   try {
-    const recent = await Record.find()
+    const recent = await Record.find({ isDeleted: false })
       .sort({ createdAt: -1 })
       .limit(5)
       .populate("createdBy", "name");
