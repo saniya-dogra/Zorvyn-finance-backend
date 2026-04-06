@@ -26,12 +26,7 @@ const recordSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // track who created each record
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
+    // track who created each record createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, }, // soft delete — records are never truly deleted isDeleted: { type: Boolean, default: false, }, }, { timestamps: true }
   },
   { timestamps: true }
 );
