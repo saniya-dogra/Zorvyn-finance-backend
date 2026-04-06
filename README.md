@@ -181,7 +181,7 @@ Server will run on `http://localhost:5000`
 
 ## Assumptions Made
 
-- Any user can register with any role for testing purposes. In a real app, only admins would assign roles.
+- All users register with the "viewer" role by default. Only an admin can promote a user to analyst or admin via the PUT /api/users/:id/role endpoint.
 - Soft delete was not implemented to keep things simple — records are permanently deleted.
 - No pagination added to keep the code clean, but it can be added easily with mongoose `.skip()` and `.limit()`.
 - Dates are stored as MongoDB Date objects. Send dates in ISO format like `2024-06-01`.
@@ -192,7 +192,7 @@ Server will run on `http://localhost:5000`
 
 - Add pagination to the records listing
 - Add search by notes/description
-- Add soft delete (isDeleted flag instead of actual delete)
+- Soft delete is implemented — records are marked isDeleted: true instead of being permanently removed
 - Add rate limiting to prevent abuse
 - Write unit tests with Jest
 
