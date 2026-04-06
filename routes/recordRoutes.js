@@ -11,7 +11,7 @@ router.get("/", protect, async (req, res) => {
     const { type, category, startDate, endDate } = req.query;
 
     // build filter object based on what the user sends
-    let filter = {};
+    let filter = { isDeleted: false };
 
     if (type) {
       if (!["income", "expense"].includes(type)) {
@@ -44,7 +44,8 @@ router.get("/", protect, async (req, res) => {
 // anyone logged in can view a single record
 router.get("/:id", protect, async (req, res) => {
   try {
-    const record = await Record.findById(req.params.id).populate("createdBy", "name email");
+    const record = await Record.findOne({ _id: req.params.id, isDeleted: false }).populate("createdBy", "name email");
+
 
     if (!record) {
       return res.status(404).json({ message: "Record not found" });
@@ -124,14 +125,7 @@ router.put("/:id", protect, authorizeRoles("admin", "analyst"), async (req, res)
 // DELETE /api/records/:id
 // only admin can delete records
 router.delete("/:id", protect, authorizeRoles("admin"), async (req, res) => {
-  try {
-    const record = await Record.findByIdAndDelete(req.params.id);
-
-    if (!record) {
-      return res.status(404).json({ message: "Record not found" });
-    }
-
-    res.json({ message: "Record deleted successfully" });
+  try { const record = await Record.findOneAndUpdate( { _id: req.params.id, isDeleted: false }, { isDeleted: true }, { new: true } ); if (!record) { return res.status(404).json({ message: "Record not found" }); } res.json({ message: "Record deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting record", error: error.message });
   }
