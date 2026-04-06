@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 
-// this schema stores all financial entries (income or expense)
 const recordSchema = new mongoose.Schema(
   {
     amount: {
@@ -16,7 +15,6 @@ const recordSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      // examples: salary, food, rent, freelance, utilities etc
     },
     date: {
       type: Date,
@@ -26,7 +24,16 @@ const recordSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // track who created each record createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, }, // soft delete — records are never truly deleted isDeleted: { type: Boolean, default: false, }, }, { timestamps: true }
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    // soft delete — records are never truly deleted
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

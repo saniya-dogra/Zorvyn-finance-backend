@@ -28,7 +28,7 @@ const { name, email, password } = req.body;
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    User.create({ name, email, password });
+    const user = await User.create({ name, email, password });
 
     res.status(201).json({
       message: "User registered successfully",
