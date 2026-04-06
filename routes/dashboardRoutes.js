@@ -35,10 +35,11 @@ router.get("/summary", protect, async (req, res) => {
 // analysts and admins can access this
 router.get("/by-category", protect, authorizeRoles("admin", "analyst"), async (req, res) => {
   try {
-    const result = await Record.aggregate([
-      {
-        $group: {
-          _id: { category: "$category", type: "$type" },
+   const result = await Record.aggregate([
+  { $match: { isDeleted: false } },
+  {
+    $group: {
+      _id: { category: "$category", type: "$type" },
           total: { $sum: "$amount" },
           count: { $sum: 1 },
         },
@@ -58,10 +59,11 @@ router.get("/by-category", protect, authorizeRoles("admin", "analyst"), async (r
 router.get("/monthly-trends", protect, authorizeRoles("admin", "analyst"), async (req, res) => {
   try {
     const result = await Record.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: "$date" },
+  { $match: { isDeleted: false } },
+  {
+    $group: {
+      _id: {
+        year: { $year: "$date" },
             month: { $month: "$date" },
             type: "$type",
           },
