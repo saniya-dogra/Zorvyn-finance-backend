@@ -8,8 +8,7 @@ const { protect, authorizeRoles } = require("../middleware/authMiddleware");
 // supports filtering by type, category, date range
 router.get("/", protect, async (req, res) => {
   try {
-    const { type, category, startDate, endDate } = req.query;
-
+    const { type, category, startDate, endDate, page, limit } = req.query; const pageNum = parseInt(page) || 1; const limitNum = parseInt(limit) || 10; const skip = (pageNum - 1) * limitNum;
     // build filter object based on what the user sends
     let filter = { isDeleted: false };
 
@@ -30,11 +29,7 @@ router.get("/", protect, async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    const records = await Record.find(filter)
-      .populate("createdBy", "name email")
-      .sort({ date: -1 }); // latest first
-
-    res.json(records);
+    const total = await Record.countDocuments(filter); const records = await Record.find(filter) .populate("createdBy", "name email") .sort({ date: -1 }) .skip(skip) .limit(limitNum); res.json({ records, pagination: { total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum), }, });
   } catch (error) {
     res.status(500).json({ message: "Error fetching records", error: error.message });
   }
